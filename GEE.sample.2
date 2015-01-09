@@ -1,0 +1,119 @@
+ ###############################
+ #Part 2 of sample GEE R code.
+ #plots predicted values.
+ #prints results from analyses.
+ ###############################
+ 
+ gee.2 <- function(Y_MIN = "auto",
+                    Y_MAX = "auto",
+                    Y_LABEL= c("Mean Rating",""),
+                    PLOT_TITLE="",
+                    PLOT_TITLE_A="",
+                    X_LABEL="",
+                    YAXIS_TICKS_LABELS=c("2","6","10","14"),
+                    YAXIS_TICKS_COR=c(2,6,10,14),
+                    Y_TICKS=T,
+                    input.data
+                    ) 
+    { 
+
+  #############################
+  #STARTING GEE.2 FUNCTION HERE
+  #############################
+  
+    #####################
+    #Set up and run the GEE
+    #####################
+    
+    #########
+    
+    print("==========================FIT RESULTS==========================")
+    
+
+
+    m.gee1.glm <- geeglm(DV ~ time + r + e + time:r + time:e + time:r:e, id = subject, data = input.data, corstr = "ar1",
+    family=gaussian())  
+  
+    print(summary(m.gee1.glm))
+    
+    cat("\n\n
+        ########################################################
+        # get the coefficients from the model.
+        # compare contents of model.coefs to coefficients shown.
+        ########################################################
+        \n")
+    
+    model.coefs <- coef(m.gee1.glm)
+    coef.names <- names(model.coefs)
+    
+    print(model.coefs)
+
+    cat("\n\n
+        ########################################################
+        # Now we have the model coefficients.
+        # Compute all possible combinations at once.
+        #########################################################
+        \n")
+    
+    #for the dissertation data, get rid of all experience stuff.
+      #ex.sd <- sd(input.data$exper)
+    
+    ##Time: time 1 = -.5; time 2 = .5
+    ##Event: e.dec = -.5; e.inc = .5
+    ##Reaction: r.dec = -.5; r.inc = .5
+    
+    
+    ##We will wind up with 8 points that need to be plotted.
+    ## 4 conditions at each time point.
+    ## I made it so that 1-4 = Time 1 and 5-8 = Time 2
+    
+  #"PV.N" is the predicted values for all participants (N)  
+  pv.n <- predict(m.gee1.glm,
+                    data.frame(time=c(-.5,-.5, -.5,-.5,  .5, .5,  .5, .5 ),
+                                  e=c(-.5,-.5,  .5, .5, -.5,-.5,  .5, .5 ),
+                                  r=c(-.5, .5, -.5, .5, -.5, .5, -.5, .5 )
+                               ))
+    
+ print("predicted values for all participants")
+    print(pv.n)
+   # readline()
+    
+    print("these are the predicted values that will go into the figure")
+    
+    ##################################################
+    #make the figure from the pvs for all participants
+    ##################################################
+    
+    dissdata <- pv.n #copy participants' data
+    times <- c(1,1,1,1,2,2,2,2) 
+    cond <- c(1,2,3,4,1,2,3,4)  
+    
+    #################################################
+    # Create the data frame for diss data to plot (DTP)
+    #################################################
+    
+    dtp <- data.frame(times=times,
+                      cond=cond,
+                      dissdata=as.numeric(dissdata)
+    )
+    
+   
+    
+    
+    ########################################################
+    #This will plot all participants' data 
+    ########################################################
+    
+    #plot all data
+
+    plot.data(dtp=dtp,ycol=3, PLOT.TITLE=PLOT_TITLE_A,Y.MIN=Y_MIN,Y.MAX=Y_MAX,Y.LABEL=Y_LABEL[1],
+      YAXIS.TICKS.COR=YAXIS_TICKS_COR,
+      YAXIS.TICKS.LABELS=YAXIS_TICKS_LABELS,
+      Y.TICKS=Y_TICKS,
+      X.LABEL=X_LABEL
+   )
+    
+ 
+
+
+  }#gee.2 ##################################################
